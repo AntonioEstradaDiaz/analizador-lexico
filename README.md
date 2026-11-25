@@ -2,7 +2,15 @@
 
 Analizador léxico y simulador de autómatas para Lenguajes y Autómatas I, Unidad 6. Reconoce cinco tokens, muestra errores con sus columnas y permite recorrer el AFD de identificadores paso a paso. La interfaz incluye 20 casos verificables, exportación CSV y consulta de reglas.
 
-## Instalación y ejecución
+## Descargar y abrir en Windows
+
+1. [Descarga AnalizadorLexico.exe](https://github.com/AntonioEstradaDiaz/analizador-lexico/releases/download/v1.0.0/AnalizadorLexico.exe).
+2. En el Explorador de archivos, abre la carpeta donde guardaste el archivo, normalmente **Descargas**.
+3. Haz doble clic en `AnalizadorLexico.exe` para iniciar la aplicación.
+
+El ejecutable es para Windows de 64 bits y se verificó en Windows 11. Incluye las dependencias necesarias y se abre sin instalar Python.
+
+## Instalación y ejecución desde el código fuente
 
 Requiere Python 3.10 o superior y Tk. En Windows instala Python con Tcl/Tk habilitado. En Debian o Ubuntu instala el paquete `python3-tk` si falta. `requirements.txt` instala CustomTkinter y Pillow, que prepara los iconos para distintas densidades de pantalla. La aplicación funciona sin conexión después de instalar las dependencias.
 
