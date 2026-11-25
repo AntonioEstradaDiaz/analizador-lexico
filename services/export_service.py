@@ -1,3 +1,5 @@
+"""Conversión de análisis y pruebas al formato CSV."""
+
 import csv
 from collections.abc import Iterable
 from pathlib import Path
@@ -16,6 +18,7 @@ def write_csv(path: str | Path, headers: tuple[str, ...], rows: Iterable[tuple])
 
 def analysis_rows(result: AnalysisResult) -> Iterable[tuple]:
     # Ambas listas ya están ordenadas. Se mezclan sin alterar el orden de origen.
+    """Combina tokens y errores en orden de columna para la exportación."""
     from heapq import merge
 
     tokens = ((x.column, "Token", x.lexeme, x.kind, "") for x in result.tokens)
@@ -24,11 +27,13 @@ def analysis_rows(result: AnalysisResult) -> Iterable[tuple]:
 
 
 def export_analysis(path: str | Path, result: AnalysisResult) -> None:
+    """Guarda los tokens y errores del análisis seleccionado."""
     write_csv(path, ("Columna", "Clase", "Lexema", "Tipo", "Descripción"),
               analysis_rows(result))
 
 
 def export_runs(path: str | Path, runs: Iterable[TestRun]) -> None:
+    """Guarda la entrada, la comparación y el resultado de cada prueba ejecutada."""
     write_csv(path, ("Caso", "Descripción", "Entrada", "Esperado", "Obtenido", "Resultado"),
               ((r.case.identifier, r.case.description, r.case.source,
                 describe(r.case.expected), describe(r.actual),

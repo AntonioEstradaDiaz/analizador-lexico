@@ -1,3 +1,5 @@
+"""Créditos, datos académicos y objetivo del proyecto."""
+
 import customtkinter as ctk
 
 from ui import theme as t
@@ -14,9 +16,11 @@ MEMBERS = (
 
 
 class AboutView(ctk.CTkScrollableFrame):
+    """Presenta la ficha del proyecto y la lista de integrantes."""
     def __init__(self, parent):
+        """Crea las tarjetas de asignatura, integrantes, objetivo y tecnologías."""
         super().__init__(parent, fg_color="transparent")
-        t.heading(self, "Lexical Analyzer", "Versión 1.0.0 · Proyecto académico").pack(
+        t.heading(self, "Analizador Lexico", "Versión 1.0.0 · Proyecto académico").pack(
             fill="x", pady=(0, 12))
         info_card(self, "Asignatura",
                   "Lenguajes y Autómatas I\n"

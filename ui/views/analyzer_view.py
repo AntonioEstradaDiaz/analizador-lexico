@@ -1,3 +1,5 @@
+"""Editor de una línea, resultados y exportación del análisis."""
+
 import tkinter as tk
 from tkinter import filedialog, font, messagebox
 
@@ -9,6 +11,8 @@ from services.export_service import analysis_rows, export_analysis
 from ui import theme as t
 from ui.components.metric_card import MetricCard
 from ui.components.token_table import DataTable
+
+# --- Ejemplos precargados y colores por tipo ---
 
 EXAMPLES = {
     "Asignación y suma": "Total2=15+3;",
@@ -22,7 +26,9 @@ COLORS = dict(zip(("IDENTIFICADOR", "ENTERO", "ASIGNACIÓN", "SUMA", "FIN_SENTEN
 
 
 class AnalyzerView(ctk.CTkFrame):
+    """Coordina la edición, el motor léxico y la presentación de resultados."""
     def __init__(self, parent):
+        """Organiza el editor, las métricas, las tablas y las acciones."""
         super().__init__(parent, fg_color="transparent")
         self.result: AnalysisResult | None = None
         self.source = ""
@@ -67,7 +73,10 @@ class AnalyzerView(ctk.CTkFrame):
         self.export_button.grid(row=0, column=2)
         self._actions("disabled")
 
+    # --- Construcción del editor y las tablas ---
+
     def _build_editor(self) -> None:
+        """Crea el editor y enlaza los atajos, el pegado y los ejemplos."""
         panel = ctk.CTkFrame(self, fg_color=t.PANEL, border_width=1,
                              border_color=t.BORDER, corner_radius=12)
         panel.grid(row=1, sticky="ew")
@@ -109,6 +118,7 @@ class AnalyzerView(ctk.CTkFrame):
                      text_color=t.MUTED).grid(row=0, column=1, columnspan=2, padx=12, sticky="e")
 
     def _table(self, row: int, title: str, columns: tuple) -> DataTable:
+        """Crea una tabla de resultados y enlaza la selección con el editor."""
         section = ctk.CTkFrame(self, fg_color="transparent")
         section.grid(row=row, sticky="nsew", pady=(3, 0))
         section.columnconfigure(0, weight=1)
@@ -120,7 +130,10 @@ class AnalyzerView(ctk.CTkFrame):
         table.tree.bind("<<TreeviewSelect>>", lambda event: self._select(table))
         return table
 
+    # --- Entrada, pegado y atajos ---
+
     def _insert(self, value: str) -> str:
+        """Inserta texto en el cursor o sustituye el fragmento seleccionado."""
         if self.editor.tag_ranges("sel"):
             self.editor.delete("sel.first", "sel.last")
         self.editor.insert("insert", value)
@@ -128,9 +141,11 @@ class AnalyzerView(ctk.CTkFrame):
         return "break"
 
     def _tab(self, event) -> str:
+        """Inserta una tabulación real y consume el evento de teclado."""
         return self._insert("\t")
 
     def _paste(self, event, selection: str = "CLIPBOARD") -> str:
+        """Pega texto y convierte los saltos de línea en espacios."""
         try:
             value = self.editor.selection_get(selection=selection)
         except tk.TclError:
@@ -138,22 +153,29 @@ class AnalyzerView(ctk.CTkFrame):
         return self._insert(value.replace("\r\n", " ").replace("\n", " ").replace("\r", " "))
 
     def _paste_selection(self, event) -> str:
+        """Pega la selección primaria en la posición del puntero."""
         self.editor.mark_set("insert", f"@{event.x},{event.y}")
         return self._paste(event, "PRIMARY")
 
     def _shortcut(self, event) -> str:
+        """Ejecuta el análisis desde el teclado y evita insertar un salto."""
         self.run()
         return "break"
 
+    # --- Vigencia del resultado y resaltado ---
+
     def _actions(self, state: str) -> None:
+        """Habilita o deshabilita las acciones de copia y exportación."""
         self.copy_button.configure(state=state)
         self.export_button.configure(state=state)
 
     def _clear_highlights(self) -> None:
+        """Retira las etiquetas de token, error y selección del editor."""
         for tag in (*COLORS, "error", "selected"):
             self.editor.tag_remove(tag, "1.0", "end")
 
     def _modified(self, event=None) -> None:
+        """Invalida el resaltado si el resultado ya no corresponde a la entrada."""
         if not self.editor.edit_modified():
             return
         self.editor.edit_modified(False)
@@ -167,6 +189,7 @@ class AnalyzerView(ctk.CTkFrame):
             self._show_status()
 
     def _select(self, table: DataTable) -> None:
+        """Resalta el tramo de la fila seleccionada y lo lleva a la vista."""
         selection = table.tree.selection()
         if not selection or self.editor.get("1.0", "end-1c") != self.source:
             return
@@ -180,10 +203,12 @@ class AnalyzerView(ctk.CTkFrame):
         self.editor.see(start)
 
     def _span(self, column: int, lexeme: str) -> tuple[str, str]:
+        """Convierte una columna léxica y su lexema en índices del editor."""
         start = f"1.0 + {column - 1} chars"
         return start, f"{start} + {len(lexeme)} chars"
 
     def _paint(self) -> None:
+        """Aplica a cada lexema el estilo de su token o de su error."""
         self._clear_highlights()
         if self.result is None:
             return
@@ -192,7 +217,10 @@ class AnalyzerView(ctk.CTkFrame):
         for error in self.result.errors:
             self.editor.tag_add("error", *self._span(error.column, error.lexeme))
 
+    # --- Carga, limpieza y análisis ---
+
     def load_source(self, source: str) -> None:
+        """Carga una línea en el editor y reinicia el historial de deshacer."""
         self.editor.delete("1.0", "end")
         self.editor.insert("1.0", source)
         self.editor.edit_reset()
@@ -200,11 +228,13 @@ class AnalyzerView(ctk.CTkFrame):
         self._modified()
 
     def _reset_tables(self) -> None:
+        """Borra las filas y el vínculo con sus posiciones en el editor."""
         self.tokens.clear()
         self.errors.clear()
         self.rows.clear()
 
     def clear(self) -> None:
+        """Restablece el editor, las métricas, las tablas y el estado."""
         self.result = None
         self.source = ""
         self.load_source("")
@@ -217,6 +247,7 @@ class AnalyzerView(ctk.CTkFrame):
         self.status.configure(text="Lista para analizar", text_color=t.MUTED)
 
     def _show_status(self) -> None:
+        """Muestra el resultado final con su color y habilita las acciones."""
         if self.result is None:
             return
         color = {Status.VALID: t.SUCCESS, Status.INVALID: t.ERROR, Status.EMPTY: t.WARNING}
@@ -224,6 +255,7 @@ class AnalyzerView(ctk.CTkFrame):
         self._actions("normal")
 
     def run(self) -> None:
+        """Llama al motor y refleja su salida en las tablas, métricas y editor."""
         self.source = self.editor.get("1.0", "end-1c")
         self.result = analyze(self.source)
         self._reset_tables()
@@ -242,7 +274,10 @@ class AnalyzerView(ctk.CTkFrame):
         self._paint()
         self._show_status()
 
+    # --- Portapapeles y exportación ---
+
     def copy(self) -> None:
+        """Copia al portapapeles el estado y los registros del análisis."""
         if self.result is None:
             return
         output = [self.result.status.value, "Columna\tClase\tLexema\tTipo\tDescripción"]
@@ -252,6 +287,7 @@ class AnalyzerView(ctk.CTkFrame):
         self.status.configure(text=f"{self.result.status.value} · Copiado")
 
     def export(self) -> None:
+        """Solicita una ruta y guarda en CSV el análisis disponible."""
         if self.result is None:
             return
         path = filedialog.asksaveasfilename(parent=self, defaultextension=".csv",

@@ -1,5 +1,9 @@
+"""Tabla de transiciones y evaluación de identificadores."""
+
 from core.models import AutomataStep
 from core.patterns import DIGIT, LETTER
+
+# --- Estados, alfabeto y tabla de transiciones ---
 
 INITIAL = "q0"
 ACCEPTING = "q1"
@@ -10,6 +14,8 @@ TRANSITIONS = {
     "qR": dict.fromkeys(CATEGORIES, "qR"),
 }
 
+
+# --- Simulación y aceptación ---
 
 def trace(source: str) -> list[AutomataStep]:
     """Registra una transición por carácter, incluso en el estado trampa."""
@@ -26,5 +32,6 @@ def trace(source: str) -> list[AutomataStep]:
 
 
 def accepts(source: str) -> bool:
+    """Acepta solo si el recorrido contiene pasos y termina en q1."""
     steps = trace(source)
     return bool(steps and steps[-1].following == ACCEPTING)

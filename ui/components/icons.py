@@ -1,3 +1,5 @@
+"""Iconos de navegación dibujados para distintas densidades de pantalla."""
+
 from PIL import Image, ImageDraw
 from customtkinter import CTkImage
 
@@ -10,10 +12,12 @@ def navigation_icon(index: int, color: str = t.MUTED) -> CTkImage:
     draw = ImageDraw.Draw(image)
 
     def line(*points: tuple[int, int]) -> None:
+        """Traza un segmento o una figura a cuatro veces la resolución final."""
         draw.line([(x * 4, y * 4) for x, y in points], fill=color, width=6,
                   joint="curve")
 
     def circle(x: int, y: int, radius: int) -> None:
+        """Dibuja un contorno circular en la imagen de alta resolución."""
         draw.ellipse(((x - radius) * 4, (y - radius) * 4,
                       (x + radius) * 4, (y + radius) * 4), outline=color, width=6)
 

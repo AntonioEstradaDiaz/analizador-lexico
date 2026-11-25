@@ -1,3 +1,5 @@
+"""Paleta, estilos de tablas y controles compartidos."""
+
 import customtkinter as ctk
 from tkinter import ttk
 
@@ -10,6 +12,7 @@ HOVER, SELECT, INPUT_BORDER = "#6744C6", "#493578", "#65697D"
 
 
 def blend(start: str, end: str, progress: float) -> str:
+    """Interpola los canales RGB entre dos colores de la transición."""
     channels = []
     for index in (1, 3, 5):
         first = int(start[index:index + 2], 16)
@@ -19,6 +22,7 @@ def blend(start: str, end: str, progress: float) -> str:
 
 
 def configure() -> None:
+    """Activa el modo oscuro y configura las tablas y sus estados de selección."""
     ctk.set_appearance_mode("dark")
     style = ttk.Style()
     style.theme_use("clam")
@@ -34,6 +38,7 @@ def configure() -> None:
 
 
 def heading(parent, title: str, subtitle: str) -> ctk.CTkFrame:
+    """Construye el encabezado de una vista con título y subtítulo."""
     frame = ctk.CTkFrame(parent, fg_color="transparent")
     ctk.CTkLabel(frame, text=title, text_color=TEXT,
                  font=ctk.CTkFont(size=28, weight="bold")).pack(anchor="w")
@@ -43,6 +48,7 @@ def heading(parent, title: str, subtitle: str) -> ctk.CTkFrame:
 
 
 def button(parent, label: str, command, primary: bool = False, **kwargs) -> ctk.CTkButton:
+    """Crea un botón con la variante primaria o secundaria del tema."""
     return ctk.CTkButton(parent, text=label, command=command, height=36,
                          font=ctk.CTkFont(size=14, weight="bold"),
                          corner_radius=8, fg_color=PRIMARY if primary else SIDE,

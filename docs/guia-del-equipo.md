@@ -1,6 +1,6 @@
 # Guía del equipo
 
-Lexical Analyzer recibe una línea de texto. Muestra sus tokens, los errores con su columna y el estado léxico de la entrada. También permite simular el autómata de identificadores.
+Analizador Lexico recibe una línea de texto. Muestra sus tokens, los errores con su columna y el estado léxico de la entrada. También permite simular el autómata de identificadores.
 
 ## Recorrido del código
 
@@ -18,6 +18,19 @@ Lexical Analyzer recibe una línea de texto. Muestra sus tokens, los errores con
 | Exportación | [services/export_service.py](../services/export_service.py) | Convierte los datos reales del análisis y las pruebas a CSV. |
 
 ## Ejemplo para la exposición
+
+Para encontrar una función rápidamente, busca su nombre con **Ctrl + F** o abre
+la lista de símbolos de tu editor. Estas son las funciones que conviene tener a mano.
+
+| Si preguntan por… | Busca… |
+| --- | --- |
+| El recorrido de la línea y la columna inicial | `analyze` en [core/lexer.py](../core/lexer.py) |
+| Las transiciones de un identificador | `trace` en [core/afd.py](../core/afd.py) |
+| El paso automático del simulador | `play` y `_tick` en [automata_view.py](../ui/views/automata_view.py) |
+| La llamada al motor desde el botón Analizar | `run` en [analyzer_view.py](../ui/views/analyzer_view.py) |
+| La comparación con resultados esperados | `run_case` y `TestRun.passed` en [test_service.py](../services/test_service.py) |
+
+### Secuencia de demostración
 
 1. Analicen `Total2=15+3;`. El patrón `[A-Za-z][A-Za-z0-9]*` reconoce el lexema `Total2`. Su token es de tipo IDENTIFICADOR y empieza en la columna 1.
 2. Analicen `a=9abc+@;`. El motor toma `9abc` completo y lo compara con los patrones mediante `fullmatch`. Registra el bloque en la columna 3 y el carácter `@` en la columna 8. Los tokens `a`, `=`, `+` y `;` aparecen en las columnas 1, 2, 7 y 9.

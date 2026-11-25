@@ -1,3 +1,5 @@
+"""Representación gráfica de estados y transiciones del AFD."""
+
 import tkinter as tk
 
 from core.models import AutomataStep
@@ -5,18 +7,24 @@ from ui import theme as t
 
 
 class AutomataCanvas(tk.Canvas):
+    """Dibuja el AFD y destaca el estado y la arista del paso actual."""
     def __init__(self, parent):
+        """Configura el lienzo y redibuja el diagrama cuando cambia su tamaño."""
         super().__init__(parent, width=1, height=175, background=t.PANEL,
                          highlightthickness=1, highlightbackground=t.BORDER)
         self.active = "q0"
         self.step: AutomataStep | None = None
         self.bind("<Configure>", lambda event: self.draw())
 
+    # --- Renderizado de estados ---
+
     def show(self, state: str, step: AutomataStep | None) -> None:
+        """Guarda el paso activo y actualiza el dibujo."""
         self.active, self.step = state, step
         self.draw()
 
     def draw(self) -> None:
+        """Distribuye los estados y aristas según las dimensiones del lienzo."""
         self.delete("all")
         width, height = self.winfo_width(), self.winfo_height()
         if width < 350 or height < 120:
@@ -45,12 +53,16 @@ class AutomataCanvas(tk.Canvas):
                 self.create_oval(x-17, y-17, x+17, y+17, outline=outline)
             self.create_text(x, y, text=state, fill=t.TEXT, font=("TkDefaultFont", 10, "bold"))
 
+    # --- Trazado de transiciones ---
+
     def _loop(self, x: float, y: float, label: str, state: str) -> None:
+        """Dibuja la transición de un estado a sí mismo."""
         self._edge((x - 13, y - 17, x - 38, y - 58, x + 38, y - 58, x + 13, y - 17),
                    label, (x, y - 65), (state, state), smooth=True)
 
     def _edge(self, points: tuple, label: str, label_at: tuple,
               states: tuple[str, str] | None = None, smooth: bool = False) -> None:
+        """Dibuja una flecha con su etiqueta y resalta la transición ejecutada."""
         active = self.step is not None and states == (self.step.previous, self.step.following)
         color = t.ACCENT if active else t.MUTED
         self.create_line(*points, arrow=tk.LAST, smooth=smooth,

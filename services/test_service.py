@@ -1,3 +1,5 @@
+"""Casos esperados y comparación con el motor léxico."""
+
 from dataclasses import dataclass
 
 from core.lexer import analyze
@@ -7,8 +9,11 @@ V, I, E = Status.VALID, Status.INVALID, Status.EMPTY
 ID, N, EQ, PLUS, END = "IDENTIFICADOR", "ENTERO", "ASIGNACIÓN", "SUMA", "FIN_SENTENCIA"
 
 
+# --- Definición de entradas y resultados esperados ---
+
 def case(number: int, description: str, source: str, status: Status,
          tokens: tuple = (), errors: tuple = ()) -> TestCase:
+    """Construye un caso con las expectativas definidas manualmente."""
     return TestCase(number, description, source, (status, tokens, errors))
 
 
@@ -51,17 +56,22 @@ CASES = (
 )
 
 
+# --- Ejecución y comparación de salidas ---
+
 @dataclass(frozen=True)
 class TestRun:
+    """Agrupa un caso y la salida real de su ejecución."""
     case: TestCase
     actual: tuple
 
     @property
     def passed(self) -> bool:
+        """Comprueba la coincidencia exacta de estado, tokens y errores ordenados."""
         return self.case.expected == self.actual
 
 
 def run_case(test: TestCase) -> TestRun:
+    """Ejecuta el motor y extrae los campos que se comparan con la expectativa."""
     result = analyze(test.source)
     return TestRun(test, (
         result.status,
@@ -71,6 +81,7 @@ def run_case(test: TestCase) -> TestRun:
 
 
 def describe(snapshot: tuple) -> str:
+    """Convierte una salida de prueba en texto legible para la vista y el CSV."""
     status, tokens, errors = snapshot
     token_text = ", ".join(f"{lexeme!r} · {kind} · col. {col}" for lexeme, kind, col in tokens)
     error_text = ", ".join(f"{lexeme!r} · col. {col}" for lexeme, col in errors)

@@ -1,3 +1,5 @@
+"""Tabla reutilizable con encabezados, franjas y barras de desplazamiento."""
+
 from tkinter import ttk
 
 import customtkinter as ctk
@@ -6,7 +8,9 @@ from ui import theme as t
 
 
 class DataTable(ctk.CTkFrame):
+    """Envuelve Treeview y concentra el formato común de las tablas."""
     def __init__(self, parent, columns: tuple[tuple[str, int], ...], height: int = 5):
+        """Configura columnas, alineación, selección y desplazamiento."""
         super().__init__(parent, fg_color=t.PANEL, corner_radius=12,
                          border_width=1, border_color=t.BORDER)
         self.columnconfigure(0, weight=1)
@@ -31,14 +35,17 @@ class DataTable(ctk.CTkFrame):
         self.tree.configure(yscrollcommand=vertical.set, xscrollcommand=horizontal.set)
 
     def clear(self) -> None:
+        """Elimina las filas sin modificar la estructura de la tabla."""
         self.tree.delete(*self.tree.get_children())
 
     def add(self, values: tuple, tag: str = "", key: str | None = None) -> str:
+        """Inserta una fila y devuelve su identificador."""
         row = self.tree.insert("", "end", iid=key, values=values)
         self.set_row(row, values, tag)
         return row
 
     def set_row(self, key: str, values: tuple, tag: str = "") -> None:
+        """Actualiza una fila con fondo alternado y etiqueta de estado."""
         stripe = "odd" if self.tree.index(key) % 2 else "even"
         tags = (stripe, tag) if tag else (stripe,)
         self.tree.item(key, values=values, tags=tags)

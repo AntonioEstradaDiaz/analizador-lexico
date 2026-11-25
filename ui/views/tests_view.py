@@ -1,3 +1,5 @@
+"""Ejecución de pruebas y comparación de resultados en la interfaz."""
+
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 
@@ -8,7 +10,9 @@ from ui.components.token_table import DataTable
 
 
 class TestsView(ctk.CTkFrame):
+    """Presenta los casos académicos y permite ejecutar, abrir o exportar sus resultados."""
     def __init__(self, parent, open_case):
+        """Construye los controles, la tabla de casos y los paneles de comparación."""
         super().__init__(parent, fg_color="transparent")
         self.open_case = open_case
         self.runs: dict[int, TestRun] = {}
@@ -46,7 +50,10 @@ class TestsView(ctk.CTkFrame):
         self.table.tree.selection_set("1")
         self.show_detail()
 
+    # --- Presentación y selección de casos ---
+
     def _detail(self, title: str, column: int) -> ctk.CTkTextbox:
+        """Construye un panel desplazable para el resultado de un caso."""
         frame = ctk.CTkFrame(self, fg_color="transparent")
         frame.grid(row=3, column=column, sticky="nsew", padx=(0, 8 if column == 0 else 0), pady=(8, 0))
         frame.columnconfigure(0, weight=1)
@@ -60,7 +67,9 @@ class TestsView(ctk.CTkFrame):
 
     @staticmethod
     def values(case, run: TestRun | None = None) -> tuple:
+        """Prepara el resumen de un caso para su fila de tabla."""
         def short(snapshot: tuple) -> str:
+            """Extrae del resultado la etiqueta breve del estado léxico."""
             return snapshot[0].value.replace("Entrada ", "").replace("léxicamente ", "").capitalize()
 
         return (case.identifier, case.description, repr(case.source), short(case.expected),
@@ -68,10 +77,12 @@ class TestsView(ctk.CTkFrame):
                 ("Aprobada" if run.passed else "Fallida") if run else "Pendiente")
 
     def selected(self):
+        """Obtiene el caso asociado a la fila seleccionada."""
         selection = self.table.tree.selection()
         return CASES[int(selection[0]) - 1] if selection else None
 
     def show_detail(self) -> None:
+        """Muestra lado a lado las salidas esperada y obtenida."""
         case = self.selected()
         if case is None:
             return
@@ -83,7 +94,10 @@ class TestsView(ctk.CTkFrame):
             box.insert("1.0", content)
             box.configure(state="disabled")
 
+    # --- Ejecución y exportación ---
+
     def _execute(self, cases: tuple) -> None:
+        """Ejecuta los casos indicados y actualiza filas, conteo y porcentaje."""
         for case in cases:
             run = run_case(case)
             self.runs[case.identifier] = run
@@ -97,19 +111,23 @@ class TestsView(ctk.CTkFrame):
         self.show_detail()
 
     def run_one(self) -> None:
+        """Ejecuta únicamente el caso seleccionado si existe."""
         case = self.selected()
         if case:
             self._execute((case,))
 
     def run_all(self) -> None:
+        """Ejecuta la colección completa de casos."""
         self._execute(CASES)
 
     def open_selected(self) -> None:
+        """Envía la entrada seleccionada al analizador."""
         case = self.selected()
         if case:
             self.open_case(case.source)
 
     def export(self) -> None:
+        """Guarda en CSV las ejecuciones disponibles y muestra el resultado."""
         path = filedialog.asksaveasfilename(parent=self, defaultextension=".csv",
                     filetypes=[("Archivo CSV", "*.csv")], initialfile="pruebas.csv")
         if path:

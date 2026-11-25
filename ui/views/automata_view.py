@@ -1,3 +1,5 @@
+"""Controles, historial y estado de la simulación del AFD."""
+
 import tkinter as tk
 from tkinter import font
 
@@ -11,7 +13,9 @@ from ui.components.token_table import DataTable
 
 
 class AutomataView(ctk.CTkFrame):
+    """Permite recorrer un identificador manualmente o con reproducción automática."""
     def __init__(self, parent):
+        """Configura el estado inicial, el lienzo, los controles y las tablas."""
         super().__init__(parent, fg_color="transparent")
         self.steps: list[AutomataStep] = []
         self.position = 0
@@ -35,7 +39,10 @@ class AutomataView(ctk.CTkFrame):
         self.source.trace_add("write", self._invalidate)
         self._render()
 
+    # --- Controles y tabla de transiciones ---
+
     def _build_controls(self) -> None:
+        """Organiza la entrada, los ejemplos rápidos y los controles de recorrido."""
         inputs = ctk.CTkFrame(self, fg_color="transparent")
         inputs.grid(row=1, sticky="ew")
         inputs.columnconfigure(0, weight=1)
@@ -73,9 +80,11 @@ class AutomataView(ctk.CTkFrame):
 
     @staticmethod
     def _one_line(value: str) -> bool:
+        """Restringe el editor del simulador a una sola línea."""
         return "\n" not in value and "\r" not in value
 
     def _build_tables(self) -> None:
+        """Presenta el historial y la tabla que define las transiciones."""
         frame = ctk.CTkFrame(self, fg_color="transparent")
         frame.grid(row=5, sticky="nsew")
         frame.columnconfigure((0, 1), weight=1)
@@ -92,11 +101,15 @@ class AutomataView(ctk.CTkFrame):
         for state, edges in TRANSITIONS.items():
             self.matrix.add((state, *edges.values()))
 
+    # --- Preparación y recorrido manual ---
+
     def load(self, value: str) -> None:
+        """Carga un ejemplo e inicializa su recorrido."""
         self.source.set(value)
         self.start()
 
     def _invalidate(self, *_args) -> None:
+        """Descarta el recorrido anterior cuando cambia la cadena."""
         self.pause()
         self.started = False
         self.steps = []
@@ -105,6 +118,7 @@ class AutomataView(ctk.CTkFrame):
         self._render()
 
     def start(self) -> None:
+        """Calcula las transiciones desde q0 y muestra el punto de partida."""
         self.pause()
         self.steps = trace(self.source.get())
         self.started = True
@@ -113,6 +127,7 @@ class AutomataView(ctk.CTkFrame):
         self._render()
 
     def _advance(self, direction: int) -> None:
+        """Mueve el cursor un paso y actualiza el historial visible."""
         target = self.position + direction
         if not self.started or not 0 <= target <= len(self.steps):
             return
@@ -129,30 +144,40 @@ class AutomataView(ctk.CTkFrame):
         self._render()
 
     def next(self) -> None:
+        """Pausa la reproducción y ejecuta la transición siguiente."""
         self.pause()
         self._advance(1)
 
     def previous(self) -> None:
+        """Pausa la reproducción y retrocede una transición."""
         self.pause()
         self._advance(-1)
 
+    # --- Reproducción automática ---
+
     def play(self) -> None:
+        """Programa el siguiente paso con el intervalo elegido."""
         if self.timer is None and self.started and self.position < len(self.steps):
             self.timer = self.after(int(self.speed.get()), self._tick)
             self._sync_buttons()
 
     def _tick(self) -> None:
+        """Ejecuta un paso automático y vuelve a programar si quedan caracteres."""
         self.timer = None
         self._advance(1)
         self.play()
 
     def pause(self) -> None:
+        """Cancela el temporizador y sincroniza los controles."""
         if self.timer is not None:
             self.after_cancel(self.timer)
             self.timer = None
         self._sync_buttons()
 
+    # --- Estado de los controles y presentación ---
+
     def _sync_buttons(self) -> None:
+        """Habilita los controles aplicables al punto actual del recorrido."""
         remaining = self.started and self.position < len(self.steps)
         for label, enabled in (
             ("Anterior", self.position > 0), ("Siguiente", remaining),
@@ -162,6 +187,7 @@ class AutomataView(ctk.CTkFrame):
             self.actions[label].configure(state="normal" if enabled else "disabled")
 
     def _render(self) -> None:
+        """Actualiza el lienzo, los detalles y el resultado de aceptación."""
         step = self.steps[self.position - 1] if self.position else None
         state = step.following if step else INITIAL
         self.canvas.show(state, step)

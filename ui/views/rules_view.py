@@ -1,3 +1,5 @@
+"""Consulta de patrones y conceptos de análisis léxico."""
+
 import customtkinter as ctk
 
 from core.patterns import PATTERNS
@@ -6,6 +8,7 @@ from ui.components.token_table import DataTable
 
 
 def info_card(parent, title: str, text: str) -> None:
+    """Muestra un título y contenido que se ajusta al ancho de la vista."""
     card = ctk.CTkFrame(parent, fg_color=t.PANEL, corner_radius=12,
                         border_color=t.BORDER, border_width=1)
     card.pack(fill="x", pady=(0, 8))
@@ -19,7 +22,9 @@ def info_card(parent, title: str, text: str) -> None:
 
 
 class RulesView(ctk.CTkScrollableFrame):
+    """Presenta los patrones y las reglas con ejemplos de consulta."""
     def __init__(self, parent):
+        """Construye la tabla de patrones y las tarjetas explicativas."""
         super().__init__(parent, fg_color="transparent")
         t.heading(self, "Reglas léxicas", "Patrones, ejemplos y posiciones del lenguaje.").pack(
             fill="x", pady=(0, 12))

@@ -1,8 +1,12 @@
+"""Motor de reconocimiento léxico, independiente de la interfaz."""
+
 from time import perf_counter
 
 from core.models import AnalysisResult, LexicalError, Status, Token
 from core.patterns import BLOCK, PATTERNS, SYMBOLS
 
+
+# --- Recorrido y clasificación de la línea ---
 
 def analyze(source: str) -> AnalysisResult:
     """Recorre la entrada una vez y conserva los tokens tras cada error."""
@@ -40,5 +44,6 @@ def analyze(source: str) -> AnalysisResult:
             ))
         index += 1
 
+    # Cualquier error domina el resultado, aunque se hayan reconocido tokens.
     status = Status.INVALID if errors else Status.VALID if tokens else Status.EMPTY
     return AnalysisResult(tokens, errors, status, len(source), (perf_counter() - start) * 1000)

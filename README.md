@@ -1,4 +1,4 @@
-# Lexical Analyzer
+# Analizador Lexico
 
 Analizador léxico y simulador de autómatas para Lenguajes y Autómatas I, Unidad 6. Reconoce cinco tokens, muestra errores con sus columnas y permite recorrer el AFD de identificadores paso a paso. La interfaz incluye 20 casos verificables, exportación CSV y consulta de reglas.
 
@@ -60,10 +60,10 @@ Ejecuta estos comandos en el sistema operativo de destino, con el entorno activa
 
 ```bash
 python -m pip install pyinstaller
-python -m PyInstaller --noconfirm --windowed --onedir --collect-all customtkinter --name LexicalAnalyzer main.py
+python -m PyInstaller --noconfirm --windowed --onedir --collect-all customtkinter --name AnalizadorLexico main.py
 ```
 
-La distribución queda en `dist/LexicalAnalyzer/`. Conserva la carpeta completa al distribuirla.
+La distribución queda en `dist/AnalizadorLexico/`. Conserva la carpeta completa al distribuirla.
 
 ## Límites
 

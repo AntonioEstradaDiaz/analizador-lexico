@@ -1,3 +1,5 @@
+"""Ventana principal y coordinación de los cinco módulos."""
+
 import customtkinter as ctk
 
 from ui import theme as t
@@ -12,9 +14,10 @@ from ui.views.tests_view import TestsView
 class MainWindow(ctk.CTk):
     """Mantiene las cinco vistas en una sola ventana."""
     def __init__(self):
+        """Configura la ventana, registra las vistas y abre el analizador."""
         super().__init__(fg_color=t.BG)
         t.configure()
-        self.title("Lexical Analyzer")
+        self.title("Analizador Lexico")
         self.geometry("1200x750")
         self.minsize(1000, 650)
         self.rowconfigure(0, weight=1)
@@ -37,7 +40,10 @@ class MainWindow(ctk.CTk):
         self.navigate("Analizador")
         self.protocol("WM_DELETE_WINDOW", self.close)
 
+    # --- Navegación entre módulos y cierre ---
+
     def navigate(self, name: str) -> None:
+        """Oculta la vista actual, detiene su reproducción si corresponde y abre la elegida."""
         if self.current == name:
             return
         if self.current is not None:
@@ -52,12 +58,14 @@ class MainWindow(ctk.CTk):
         self.sidebar.select(name)
 
     def open_case(self, source: str) -> None:
+        """Abre la entrada de una prueba en el analizador y la procesa."""
         self.navigate("Analizador")
         analyzer = self.views["Analizador"]
         analyzer.load_source(source)
         analyzer.run()
 
     def close(self) -> None:
+        """Cancela los eventos programados antes de destruir la ventana."""
         self.sidebar.finish_animation()
         if "Autómata AFD" in self.views:
             self.views["Autómata AFD"].pause()
