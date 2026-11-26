@@ -1,10 +1,10 @@
 # Analizador Lexico
 
-Analizador léxico y simulador de autómatas para Lenguajes y Autómatas I, Unidad 6. Reconoce cinco tokens, muestra errores con sus columnas y permite recorrer el AFD de identificadores paso a paso. La interfaz incluye 20 casos verificables, exportación CSV y consulta de reglas.
+Analizador léxico y simulador de autómatas para Lenguajes y Autómatas I, Unidad 6. Reconoce los cinco tipos de token del enunciado y las palabras reservadas `if`, `while` e `int`. Procesa varias líneas y muestra la línea y columna de cada token y error. Incluye un AFD de identificadores, 25 casos verificables y exportación CSV.
 
 ## Descargar y abrir en Windows
 
-1. [Descarga AnalizadorLexico.exe](https://github.com/AntonioEstradaDiaz/analizador-lexico/releases/download/v1.0.0/AnalizadorLexico.exe).
+1. [Descarga AnalizadorLexico.exe](https://github.com/AntonioEstradaDiaz/analizador-lexico/releases/latest/download/AnalizadorLexico.exe).
 2. En el Explorador de archivos, abre la carpeta donde guardaste el archivo, normalmente **Descargas**.
 3. Haz doble clic en `AnalizadorLexico.exe` para iniciar la aplicación.
 
@@ -30,7 +30,7 @@ python3 -m venv .venv
 .venv/bin/python main.py
 ```
 
-Con el entorno activado, el comando de inicio es `python main.py`. En el editor, Ctrl + Enter analiza y Tab inserta una tabulación. El pegado multilínea convierte los saltos de línea en espacios.
+Con el entorno activado, el comando de inicio es `python main.py`. En el editor, Enter inserta un salto de línea, Ctrl + Enter analiza y Tab inserta una tabulación. Al pegar texto se conservan los saltos.
 
 ## Ejemplos
 
@@ -38,6 +38,7 @@ Con el entorno activado, el comando de inicio es `python main.py`. En el editor,
 | --- | --- |
 | `Total2=15+3;` | Válida, seis tokens |
 | `a=9abc+@;` | No válida, cuatro tokens y errores en las columnas 3 y 8 |
+| `int x=1;` seguido de `if x+@;` en otra línea | No válida, con `@` en la línea 2, columna 6 |
 | `x=+;` | Válida en el nivel léxico |
 | Cadena vacía o formada por espacios y tabulaciones | Vacía |
 
@@ -60,7 +61,7 @@ Con el entorno activado:
 python -m unittest discover -v
 ```
 
-La vista **Pruebas** puede ejecutar un caso o toda la colección. Comprueba el estado, la secuencia de tokens (lexema, tipo y columna) y la secuencia de errores (lexema y columna). Los resultados esperados se definen a mano.
+La vista **Pruebas** puede ejecutar un caso o toda la colección. Comprueba el estado y las secuencias de tokens y errores, incluidas sus líneas y columnas. Los resultados esperados se definen a mano.
 
 ## Empaquetado opcional
 
@@ -75,7 +76,7 @@ La distribución queda en `dist/AnalizadorLexico/`. Conserva la carpeta completa
 
 ## Límites
 
-La entrada léxica ocupa una línea y las letras y dígitos válidos pertenecen a ASCII. El alcance académico excluye sintaxis, semántica y evaluación matemática. El AFD reconoce identificadores completos. La aplicación usa un tema oscuro y conserva las vistas durante la sesión.
+Las letras y dígitos válidos pertenecen a ASCII. El alcance académico excluye sintaxis, semántica y evaluación matemática. El AFD reconoce identificadores completos. La aplicación usa un tema oscuro y conserva las vistas durante la sesión.
 
 Consulta la [arquitectura](docs/architecture.md) para seguir el flujo que conecta el editor, el motor y la presentación.
 

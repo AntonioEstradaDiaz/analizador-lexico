@@ -7,6 +7,7 @@ from core.models import Status, TestCase
 
 V, I, E = Status.VALID, Status.INVALID, Status.EMPTY
 ID, N, EQ, PLUS, END = "IDENTIFICADOR", "ENTERO", "ASIGNACIÓN", "SUMA", "FIN_SENTENCIA"
+KEYWORD = "PALABRA RESERVADA"
 
 
 # --- Definición de entradas y resultados esperados ---
@@ -14,7 +15,10 @@ ID, N, EQ, PLUS, END = "IDENTIFICADOR", "ENTERO", "ASIGNACIÓN", "SUMA", "FIN_SE
 def case(number: int, description: str, source: str, status: Status,
          tokens: tuple = (), errors: tuple = ()) -> TestCase:
     """Construye un caso con las expectativas definidas manualmente."""
-    return TestCase(number, description, source, (status, tokens, errors))
+    # Los casos de una línea omiten la línea 1 para mantener sus datos legibles.
+    positioned_tokens = tuple((*token, 1) if len(token) == 3 else token for token in tokens)
+    positioned_errors = tuple((*error, 1) if len(error) == 2 else error for error in errors)
+    return TestCase(number, description, source, (status, positioned_tokens, positioned_errors))
 
 
 CASES = (
@@ -53,6 +57,15 @@ CASES = (
     case(19, "Mayúsculas y minúsculas", "Ab9 zZ", V,
          (("Ab9", ID, 1), ("zZ", ID, 5))),
     case(20, "Dígitos Unicode", "١２", I, errors=(("١", 1), ("２", 2))),
+    case(21, "Palabras reservadas y símbolos", "if while int;", V,
+         (("if", KEYWORD, 1), ("while", KEYWORD, 4), ("int", KEYWORD, 10), (";", END, 13))),
+    case(22, "Coincidencia exacta de reservadas", "if2 Int whilex 9int", I,
+         (("if2", ID, 1), ("Int", ID, 5), ("whilex", ID, 9)), (("9int", 16),)),
+    case(23, "Saltos LF, CRLF y CR", "int\r\n\r\tif 9abc\n@;",
+         I, (("int", KEYWORD, 1), ("if", KEYWORD, 2, 3), (";", END, 2, 4)),
+         (("9abc", 5, 3), ("@", 1, 4))),
+    case(24, "Varias líneas vacías", " \r\n\t\n", E),
+    case(25, "Un salto separa bloques", "9\nabc", V, (("9", N, 1), ("abc", ID, 1, 2))),
 )
 
 
@@ -75,15 +88,17 @@ def run_case(test: TestCase) -> TestRun:
     result = analyze(test.source)
     return TestRun(test, (
         result.status,
-        tuple((t.lexeme, t.kind, t.column) for t in result.tokens),
-        tuple((e.lexeme, e.column) for e in result.errors),
+        tuple((t.lexeme, t.kind, t.column, t.line) for t in result.tokens),
+        tuple((e.lexeme, e.column, e.line) for e in result.errors),
     ))
 
 
 def describe(snapshot: tuple) -> str:
     """Convierte una salida de prueba en texto legible para la vista y el CSV."""
     status, tokens, errors = snapshot
-    token_text = ", ".join(f"{lexeme!r} · {kind} · col. {col}" for lexeme, kind, col in tokens)
-    error_text = ", ".join(f"{lexeme!r} · col. {col}" for lexeme, col in errors)
+    token_text = ", ".join(f"{lexeme!r} · {kind} · línea {line}, col. {col}"
+                           for lexeme, kind, col, line in tokens)
+    error_text = ", ".join(f"{lexeme!r} · línea {line}, col. {col}"
+                           for lexeme, col, line in errors)
     return (f"{status.value} | Tokens ({len(tokens)}): {token_text or '—'} | "
             f"Errores ({len(errors)}): {error_text or '—'}")

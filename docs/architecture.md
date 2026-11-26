@@ -17,13 +17,13 @@ flowchart LR
 
 ## Recorrido léxico
 
-1. Lee el carácter en el índice actual. Su columna es el índice más uno.
+1. Lee el carácter en el índice actual. La columna es su distancia al inicio de la línea más uno. Un salto LF, CRLF o CR avanza una línea y reinicia el conteo de columnas.
 2. Si es espacio o tabulación, avanza un carácter.
 3. Si comienza un bloque alfanumérico ASCII, consume todo el bloque. Valida su contenido con `fullmatch` para identificador y entero. Si ambos patrones fallan, registra el bloque completo como error.
 4. Fuera de un bloque, clasifica los símbolos permitidos o registra un error de un carácter.
 5. Al terminar, asigna el estado según la presencia de errores y tokens. Mide el tiempo con `perf_counter`.
 
-El recorrido del motor tiene tiempo O(n). Los bloques son disjuntos y sus patrones no tienen alternativas ambiguas. La memoria depende de los lexemas y diagnósticos retenidos. La vista usa las columnas para aplicar etiquetas de color y seleccionar fragmentos. Una modificación invalida el resaltado hasta repetir el análisis o restaurar la cadena exacta.
+El recorrido del motor tiene tiempo O(n). Los bloques son disjuntos y sus patrones no tienen alternativas ambiguas. La memoria depende de los lexemas y diagnósticos retenidos. La vista usa las líneas y columnas para aplicar etiquetas de color y seleccionar fragmentos. Una modificación invalida el resaltado hasta repetir el análisis o restaurar la cadena exacta.
 
 ## Decisiones técnicas
 

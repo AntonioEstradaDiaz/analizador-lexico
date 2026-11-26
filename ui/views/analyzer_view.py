@@ -1,4 +1,4 @@
-"""Editor de una línea, resultados y exportación del análisis."""
+"""Editor multilínea, resultados y exportación del análisis."""
 
 import tkinter as tk
 from tkinter import filedialog, font, messagebox
@@ -7,7 +7,8 @@ import customtkinter as ctk
 
 from core.lexer import analyze
 from core.models import AnalysisResult, Status
-from services.export_service import analysis_rows, export_analysis
+from core.patterns import RESERVED_KIND
+from services.export_service import ANALYSIS_HEADERS, analysis_rows, export_analysis
 from ui import theme as t
 from ui.components.metric_card import MetricCard
 from ui.components.token_table import DataTable
@@ -19,10 +20,13 @@ EXAMPLES = {
     "Entrada con errores": "a=9abc+@;",
     "Espacios y tabulaciones": "a\t=\t5;",
     "Operadores consecutivos": "x=+;",
+    "Palabras reservadas": "if while int if2 Int",
+    "Varias líneas": "int total=15;\n\tif total+@;",
     "Entrada vacía": "",
 }
 COLORS = dict(zip(("IDENTIFICADOR", "ENTERO", "ASIGNACIÓN", "SUMA", "FIN_SENTENCIA"),
                   (t.ACCENT, t.SUCCESS, "#93C5FD", t.WARNING, t.MUTED)))
+COLORS[RESERVED_KIND] = "#F9A8D4"
 
 
 class AnalyzerView(ctk.CTkFrame):
@@ -34,7 +38,7 @@ class AnalyzerView(ctk.CTkFrame):
         self.source = ""
         self.columnconfigure(0, weight=1)
         self.rowconfigure((3, 4), weight=1, uniform="results")
-        t.heading(self, "Analizador léxico", "Reconoce tokens y localiza errores en una sola línea.").grid(
+        t.heading(self, "Analizador léxico", "Reconoce tokens y localiza errores por línea y columna.").grid(
             row=0, sticky="ew", pady=(0, 14))
         self._build_editor()
         metrics = ctk.CTkFrame(self, fg_color="transparent")
@@ -50,9 +54,11 @@ class AnalyzerView(ctk.CTkFrame):
             self.metrics.append(card)
 
         self.tokens = self._table(3, "Tokens", (
-            ("N.º", 55), ("Lexema", 160), ("Tipo de token", 155), ("Columna inicial", 120)))
+            ("N.º", 45), ("Lexema", 135), ("Tipo de token", 155),
+            ("Línea", 62), ("Columna", 85)))
         self.errors = self._table(4, "Errores léxicos", (
-            ("Lexema", 120), ("Tipo de error", 125), ("Descripción", 235), ("Columna", 75)))
+            ("Lexema", 105), ("Tipo de error", 130), ("Descripción", 220),
+            ("Línea", 62), ("Columna", 85)))
         self.rows = {}
         for kind, color in COLORS.items():
             self.tokens.tree.tag_configure(kind, foreground=color)
@@ -87,20 +93,21 @@ class AnalyzerView(ctk.CTkFrame):
         mono = font.nametofont("TkFixedFont").copy()
         mono.configure(size=15)
         self.mono = mono
-        self.editor = tk.Text(panel, height=1, width=1, wrap="none", undo=True,
+        self.editor = tk.Text(panel, height=3, width=1, wrap="none", undo=True,
                               font=mono, background=t.BG, foreground=t.TEXT,
                               insertbackground=t.TEXT, selectbackground=t.SELECT,
                               borderwidth=0, highlightthickness=1,
                               highlightbackground=t.INPUT_BORDER, highlightcolor=t.ACCENT,
                               padx=8, pady=6, tabs=(mono.measure("    "),))
-        self.editor.grid(row=1, column=0, columnspan=3, sticky="ew", padx=12)
+        self.editor.grid(row=1, column=0, columnspan=3, sticky="nsew", padx=(12, 0))
+        vertical = ctk.CTkScrollbar(panel, command=self.editor.yview, width=12, height=1)
+        vertical.grid(row=1, column=3, sticky="ns", padx=(2, 10))
         scrollbar = ctk.CTkScrollbar(panel, orientation="horizontal",
                                       command=self.editor.xview, height=9)
         scrollbar.grid(row=2, column=0, columnspan=3, sticky="ew", padx=12)
-        self.editor.configure(xscrollcommand=scrollbar.set)
-        self.editor.bind("<Return>", lambda event: "break")
-        self.editor.bind("<KP_Enter>", lambda event: "break")
+        self.editor.configure(xscrollcommand=scrollbar.set, yscrollcommand=vertical.set)
         self.editor.bind("<Control-Return>", self._shortcut)
+        self.editor.bind("<Control-KP_Enter>", self._shortcut)
         self.editor.bind("<Tab>", self._tab)
         self.editor.bind("<<Paste>>", self._paste)
         self.editor.bind("<<PasteSelection>>", self._paste_selection)
@@ -145,12 +152,12 @@ class AnalyzerView(ctk.CTkFrame):
         return self._insert("\t")
 
     def _paste(self, event, selection: str = "CLIPBOARD") -> str:
-        """Pega texto y convierte los saltos de línea en espacios."""
+        """Pega texto conservando cada salto de línea."""
         try:
             value = self.editor.selection_get(selection=selection)
         except tk.TclError:
             return "break"
-        return self._insert(value.replace("\r\n", " ").replace("\n", " ").replace("\r", " "))
+        return self._insert(value.replace("\r\n", "\n").replace("\r", "\n"))
 
     def _paste_selection(self, event) -> str:
         """Pega la selección primaria en la posición del puntero."""
@@ -196,15 +203,14 @@ class AnalyzerView(ctk.CTkFrame):
         row = self.rows.get((table, selection[0]))
         if row is None:
             return
-        column, lexeme = row
-        start, end = self._span(column, lexeme)
+        start, end = self._span(row.line, row.column, row.lexeme)
         self.editor.tag_remove("selected", "1.0", "end")
         self.editor.tag_add("selected", start, end)
         self.editor.see(start)
 
-    def _span(self, column: int, lexeme: str) -> tuple[str, str]:
-        """Convierte una columna léxica y su lexema en índices del editor."""
-        start = f"1.0 + {column - 1} chars"
+    def _span(self, line: int, column: int, lexeme: str) -> tuple[str, str]:
+        """Convierte la posición del lexema en índices del editor."""
+        start = f"{line}.0 + {column - 1} chars"
         return start, f"{start} + {len(lexeme)} chars"
 
     def _paint(self) -> None:
@@ -213,16 +219,16 @@ class AnalyzerView(ctk.CTkFrame):
         if self.result is None:
             return
         for token in self.result.tokens:
-            self.editor.tag_add(token.kind, *self._span(token.column, token.lexeme))
+            self.editor.tag_add(token.kind, *self._span(token.line, token.column, token.lexeme))
         for error in self.result.errors:
-            self.editor.tag_add("error", *self._span(error.column, error.lexeme))
+            self.editor.tag_add("error", *self._span(error.line, error.column, error.lexeme))
 
     # --- Carga, limpieza y análisis ---
 
     def load_source(self, source: str) -> None:
-        """Carga una línea en el editor y reinicia el historial de deshacer."""
+        """Carga texto en el editor y reinicia el historial de deshacer."""
         self.editor.delete("1.0", "end")
-        self.editor.insert("1.0", source)
+        self.editor.insert("1.0", source.replace("\r\n", "\n").replace("\r", "\n"))
         self.editor.edit_reset()
         self.editor.focus_set()
         self._modified()
@@ -260,11 +266,13 @@ class AnalyzerView(ctk.CTkFrame):
         self.result = analyze(self.source)
         self._reset_tables()
         for index, token in enumerate(self.result.tokens, 1):
-            key = self.tokens.add((index, token.lexeme, token.kind, token.column), token.kind)
-            self.rows[(self.tokens, key)] = token.column, token.lexeme
+            key = self.tokens.add((index, token.lexeme, token.kind, token.line, token.column),
+                                  token.kind)
+            self.rows[(self.tokens, key)] = token
         for error in self.result.errors:
-            key = self.errors.add((error.lexeme, error.kind, error.description, error.column), "error")
-            self.rows[(self.errors, key)] = error.column, error.lexeme
+            key = self.errors.add((error.lexeme, error.kind, error.description,
+                                   error.line, error.column), "error")
+            self.rows[(self.errors, key)] = error
         for card, value in zip(self.metrics, (
             len(self.result.tokens), len(self.result.errors), self.result.characters,
             f"{self.result.elapsed_ms:.3f} ms"
@@ -280,7 +288,7 @@ class AnalyzerView(ctk.CTkFrame):
         """Copia al portapapeles el estado y los registros del análisis."""
         if self.result is None:
             return
-        output = [self.result.status.value, "Columna\tClase\tLexema\tTipo\tDescripción"]
+        output = [self.result.status.value, "\t".join(ANALYSIS_HEADERS)]
         output.extend("\t".join(map(str, row)) for row in analysis_rows(self.result))
         self.clipboard_clear()
         self.clipboard_append("\n".join(output))

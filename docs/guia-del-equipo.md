@@ -1,6 +1,6 @@
 # Guía del equipo
 
-Analizador Lexico recibe una línea de texto. Muestra sus tokens, los errores con su columna y el estado léxico de la entrada. También permite simular el autómata de identificadores.
+Analizador Lexico recibe una o varias líneas de texto. Muestra tokens y errores con su línea y columna, además del estado léxico de la entrada. También permite simular el autómata de identificadores.
 
 ## Recorrido del código
 
@@ -9,7 +9,7 @@ Analizador Lexico recibe una línea de texto. Muestra sus tokens, los errores co
 | Arranque | [main.py](../main.py) | Crea la ventana e inicia el bucle de eventos de Tk. |
 | Navegación | [ui/main_window.py](../ui/main_window.py) | Crea las vistas cuando se abren por primera vez y conserva sus datos al cambiar de módulo. |
 | Editor y resultados | [ui/views/analyzer_view.py](../ui/views/analyzer_view.py) | Obtiene la línea, llama a `analyze`, llena las tablas y resalta las posiciones. |
-| Patrones | [core/patterns.py](../core/patterns.py) | Define los cinco tipos de token y los patrones ASCII que delimitan los bloques. |
+| Patrones | [core/patterns.py](../core/patterns.py) | Define los tokens del enunciado, las palabras reservadas y los patrones ASCII que delimitan los bloques. |
 | Motor léxico | [core/lexer.py](../core/lexer.py) | Recorre y clasifica la línea. Puede ejecutarse sin abrir Tk. |
 | Modelos | [core/models.py](../core/models.py) | Define los datos que se intercambian, como `Token`, `LexicalError` y `AnalysisResult`. |
 | AFD | [core/afd.py](../core/afd.py) | La tabla de transiciones determina el próximo estado. `trace` genera los pasos. |
@@ -43,13 +43,13 @@ El índice interno comienza en cero y la columna mostrada en uno. Un espacio o t
 
 | Requisito | Dónde verificarlo |
 | --- | --- |
-| Cinco patrones y lectura de una sola línea | **Reglas léxicas**, **Analizador** y [patrones](../core/patterns.py) |
-| Tokens en orden con lexema, tipo y columna inicial | **Analizador**, caso 4 |
+| Cinco patrones del enunciado y lectura de una o varias líneas | **Reglas léxicas**, **Analizador** y [patrones](../core/patterns.py) |
+| Tokens en orden con lexema, tipo, línea y columna inicial | **Analizador**, casos 4 y 23 |
 | Espacios y tabulaciones contados en las columnas | Casos 5 y 6 |
 | Bloque inválido completo, símbolo inválido y recuperación | Casos 7 y 8 |
 | Entrada válida, no válida y vacía | Casos 4, 8 y 9 |
 | AFD con inicio, aceptación, rechazo y tres recorridos | **Autómata AFD** y [diseño del AFD](automata.md) |
-| Al menos ocho pruebas con resultados esperados, obtenidos y coincidencia | **Pruebas** ejecuta 20 casos. Los casos 1, 2, 3, 4, 6, 7, 8 y 9 cubren el mínimo indicado. |
+| Al menos ocho pruebas con resultados esperados, obtenidos y coincidencia | **Pruebas** ejecuta 25 casos. Los casos 1, 2, 3, 4, 6, 7, 8 y 9 cubren el mínimo indicado. |
 
 El enunciado identifica la actividad como **Unidad 4**. La aplicación muestra **Unidad 6**, según la identificación solicitada para el proyecto.
 

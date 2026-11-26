@@ -20,7 +20,7 @@ class AboutView(ctk.CTkScrollableFrame):
     def __init__(self, parent):
         """Crea las tarjetas de asignatura, integrantes, objetivo y tecnologías."""
         super().__init__(parent, fg_color="transparent")
-        t.heading(self, "Analizador Lexico", "Versión 1.0.0 · Proyecto académico").pack(
+        t.heading(self, "Analizador Lexico", "Versión 1.1.0 · Proyecto académico").pack(
             fill="x", pady=(0, 12))
         info_card(self, "Asignatura",
                   "Lenguajes y Autómatas I\n"

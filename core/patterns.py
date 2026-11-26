@@ -2,10 +2,13 @@
 
 import re
 
-# --- Patrones de los cinco tokens ---
+# --- Patrones de los tokens ---
+
+RESERVED_KIND = "PALABRA RESERVADA"
 
 PATTERNS = {
     "IDENTIFICADOR": re.compile(r"[A-Za-z][A-Za-z0-9]*"),
+    RESERVED_KIND: re.compile(r"if|while|int"),
     "ENTERO": re.compile(r"[0-9]+"),
     "ASIGNACIÓN": re.compile(r"="),
     "SUMA": re.compile(r"\+"),

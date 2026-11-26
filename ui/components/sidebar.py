@@ -30,7 +30,7 @@ class Sidebar(ctk.CTkFrame):
                               anchor="w", image=self.icons[name][0], compound="left")
             action.grid(row=row, sticky="ew", padx=12, pady=3)
             self.buttons[name] = action
-        ctk.CTkLabel(self, text="Unidad 6  ·  Versión 1.0.0", text_color=t.MUTED,
+        ctk.CTkLabel(self, text="Unidad 6  ·  Versión 1.1.0", text_color=t.MUTED,
                      font=ctk.CTkFont(size=14)).grid(
             row=10, sticky="w", padx=18, pady=14)
 

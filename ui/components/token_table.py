@@ -21,7 +21,7 @@ class DataTable(ctk.CTkFrame):
         self.tree.tag_configure("even", background=t.PANEL)
         self.tree.tag_configure("odd", background=t.TABLE_ALT)
         for key, (label, width) in zip(keys, columns):
-            alignment = "center" if label in {"N.º", "Caso", "Columna", "Columna inicial",
+            alignment = "center" if label in {"N.º", "Caso", "Línea", "Columna", "Columna inicial",
                                               "Posición", "Desde", "Hasta", "Estado"} else "w"
             self.tree.heading(key, text=label, anchor=alignment)
             self.tree.column(key, width=width, minwidth=width, anchor=alignment,

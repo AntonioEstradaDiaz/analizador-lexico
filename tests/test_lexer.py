@@ -10,7 +10,7 @@ from services.test_service import CASES, run_case
 class LexerTests(unittest.TestCase):
     """Verifica casos académicos, diagnósticos y entradas largas."""
     def test_cases(self):
-        """Compara el resultado real y esperado de los veinte casos."""
+        """Compara el resultado real y esperado de todos los casos."""
         for case in CASES:
             with self.subTest(case=case.identifier):
                 self.assertEqual(run_case(case).actual, case.expected)

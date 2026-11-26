@@ -13,24 +13,26 @@ class Status(str, Enum):
 
 @dataclass(frozen=True)
 class Token:
-    """Guarda el lexema reconocido, su tipo y su columna inicial."""
+    """Guarda el lexema reconocido, su tipo y su posición inicial."""
     lexeme: str
     kind: str
     column: int
+    line: int = 1
 
 
 @dataclass(frozen=True)
 class LexicalError:
-    """Guarda el fragmento inválido, su diagnóstico y su columna inicial."""
+    """Guarda el fragmento inválido, su diagnóstico y su posición inicial."""
     lexeme: str
     description: str
     kind: str
     column: int
+    line: int = 1
 
 
 @dataclass(frozen=True)
 class AnalysisResult:
-    """Reúne los tokens, los errores, el estado y las métricas de la línea."""
+    """Reúne los tokens, los errores, el estado y las métricas de la entrada."""
     tokens: list[Token]
     errors: list[LexicalError]
     status: Status
